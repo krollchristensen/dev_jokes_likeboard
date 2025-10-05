@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="da">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Dev Jokes Likeboard</title>
+    <link rel="stylesheet" href="./styles.css" />
+</head>
+<body>
+<main class="container">
+    <h1>Dev Jokes Likeboard</h1>
+    <p class="muted">Frontend (HTML/JS) taler med backend (Express) via <code>/api/jokes</code>.</p>
+
+    <section>
+        <ul id="list"></ul>
+    </section>
+
+    <section class="muted">
+        <details>
+            <summary>Arkitektur</summary>
+            <pre>
+Frontend (browser)
+  index.html + app.js
+      │ fetch('/api/jokes'), PUT /api/jokes/:id/like
+      ▼
+Backend (Express)
+  routes → controllers → services → repo
+</pre>
+        </details>
+    </section>
+</main>
+
+<script src="./app.js"></script>
+</body>
+</html>

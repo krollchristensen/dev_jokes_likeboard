@@ -1,0 +1,13 @@
+* { box-sizing: border-box; }
+body { font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; margin: 0; padding: 0; }
+.container { max-width: 720px; margin: 2rem auto; padding: 0 1rem; }
+h1 { margin-top: 0; }
+.muted { color: #666; }
+
+#list { list-style: none; padding: 0; margin: 0; display: grid; gap: .75rem; }
+.joke { display: flex; align-items: center; gap: .75rem; padding: .75rem 1rem; border: 1px solid #e5e5e5; border-radius: .5rem; }
+.grow { flex: 1; }
+.actions { display: flex; align-items: center; gap: .5rem; }
+.likes { min-width: 2ch; text-align: right; font-variant-numeric: tabular-nums; }
+button { cursor: pointer; padding: .4rem .7rem; border: 1px solid #d0d0d0; border-radius: .4rem; background: #fafafa; }
+button:hover { background: #f0f0f0; }
