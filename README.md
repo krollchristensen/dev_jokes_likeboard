@@ -48,6 +48,59 @@ frontend/
 ```
 
 ---
+# Arkitektur – sådan spiller frontend og backend sammen
+
+**Kort fortalt:**  
+Browseren (frontend) viser HTML, CSS og JavaScript og kalder backend via `fetch(...)`.  
+Backend er en Express-app bygget i lag:  
+**Routes → Controllers → Services → Data (Repo)**.  
+Frontend modtager JSON og opdaterer DOM uden at reloade siden.
+
+---
+
+## 🧩 MVC i dette projekt
+
+### **Model (M)**
+*Data og datalogik*  
+Ligger i **`backend/data/`** (f.eks. `jokeRepo.js`).  
+Repo’et ved **hvordan** jokes hentes og ændres (i memory lige nu, men kunne være en database).  
+Repo returnerer rene JavaScript-objekter – ingen HTTP-håndtering.
+
+### **View (V)**
+*Det, brugeren ser*  
+Hele **`frontend/`** er dit View:
+- `index.html` – markup
+- `styles.css` – styling
+- `app.js` – henter data med `fetch`, renderer liste, håndterer klik på “👍 Like”
+
+View kommunikerer med Controller via HTTP/JSON.
+
+### **Controller (C)**
+*Binder alt sammen og vælger HTTP-svar*  
+Findes i **`backend/controllers/`** (f.eks. `jokeController.js`).  
+Controller læser input (params/body), validerer (fx at `id` er et tal), kalder Service og svarer med **statuskoder + JSON**.
+
+---
+
+### 🧠 Hjælpelag i arkitekturen
+
+| Lag | Mappe | Ansvar |
+|-----|--------|---------|
+| **Routes** | `backend/routes/` | Mapper URL’er/metoder til controller-funktioner. Ingen logik. |
+| **Services** | `backend/services/` | Forretningsregler. Kalder repo, men kender ikke HTTP. |
+| **Repo (Data)** | `backend/data/` | Læser/ændrer data (i memory). Ingen HTTP. |
+| **Utils** | `backend/utils/` | Hjælpefunktioner (fx datoformat). |
+| **Middlewares** | `backend/middlewares/` | Fanger og logger requests, måler tid mv. |
+| **Server** | `backend/server.js` | Starter Express-app, sætter middleware, routes og static frontend. |
+
+---
+
+## 🔁 Dataflow – fra klik til svar
+
+### 1️⃣ Hent alle jokes (`GET /api/jokes`)
+1. **View** (`frontend/app.js`) kalder:
+   ```js
+   fetch('http://localhost:3000/api/jokes')
 
 ##  Opgave: Analyser arkitekturen i projektet
 
