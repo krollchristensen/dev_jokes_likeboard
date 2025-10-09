@@ -1,24 +1,47 @@
-#  Dev Jokes Likeboard
-### Node.js-arkitektur mellem frontend og backend
+# Dev Jokes Likeboard
 
-Et  mini-projekt til 3. semester datamatikerstuderende.  
-Projektet viser, hvordan **frontend (HTML/JS)** og **backend (Express)** arbejder sammen i en simpel arkitektur.  
+Et mini-projekt til 3. semester datamatikerstuderende.  
+Projektet viser, hvordan frontend (HTML/JS) og backend (Express) arbejder sammen i en simpel arkitektur.  
 Frontend henter en liste af jokes og kan “like” dem. Backend håndterer data og svarer i JSON.
 
 ---
 
-## Mål
-- Forstå hvordan frontend og backend kommunikerer via **HTTP/JSON**.
-- Kunne følge et **request/response-flow**.
+## Formål
+- Forstå hvordan frontend og backend kommunikerer via HTTP og JSON.
+- Følge et request/response-flow.
 - Se hvordan lagene i backend hænger sammen:
   ```
   routes → controllers → services → data (repo)
   ```
-- Forstå brugen af **async/await** og **statuskoder**.
+- Forstå brugen af async/await og statuskoder.
 
 ---
 
-##  Kom i gang
+## Arkitektur
+
+Projektet følger en enkel **MVC-struktur**:
+
+- **Model (data/)**: håndterer jokes i hukommelsen (mock-database)
+- **Controller (controllers/)**: modtager requests og sender svar
+- **Service (services/)**: indeholder logik for likes og random jokes
+- **Routes (routes/)**: definerer API-endpoints
+- **Frontend (frontend/)**: statiske filer (HTML, CSS, JS)
+- **Middlewares (middlewares/)**: fx logger til requests
+- **Utils (utils/)**: små hjælpefunktioner, fx datoformat
+- **server.js**: opsætter Express-serveren og forbinder lagene
+
+---
+
+## Sekvensdiagrammer
+
+Disse viser, hvordan frontend og backend hænger sammen:
+- [SD.svg](https://github.com/krollchristensen/dev_jokes_likeboard/blob/master/SDsvg.svg)
+- [SD.png](https://github.com/krollchristensen/dev_jokes_likeboard/blob/master/SD.png)
+
+---
+
+## Kom i gang
+
 1. Installer afhængigheder:
    ```bash
    npm install
@@ -28,233 +51,114 @@ Frontend henter en liste af jokes og kan “like” dem. Backend håndterer data
    npm run dev
    ```
 3. Åbn i browser:
-   👉 [http://localhost:3000](http://localhost:3000)
+   ```
+   http://localhost:3000
+   ```
+4. Du bør se en liste af jokes med Like-knapper.
 
 ---
 
-## Mappestruktur
-```
-backend/
-  controllers/
-  data/
-  middlewares/
-  routes/
-  services/
-  utils/
-frontend/
-  index.html
-  app.js
-  styles.css
-```
+## Test API’et med Postman
 
----
-# Arkitektur – sådan spiller frontend og backend sammen
+Brug følgende endpoints til at teste backend:
 
-**Kort fortalt:**  
-Browseren (frontend) viser HTML, CSS og JavaScript og kalder backend via `fetch(...)`.  
-Backend er en Express-app bygget i lag:  
-**Routes → Controllers → Services → Data (Repo)**.  
-Frontend modtager JSON og opdaterer DOM uden at reloade siden.
+| Metode | URL | Funktion |
+|--------|-----|-----------|
+| GET | http://localhost:3000/api/jokes | Hent alle jokes |
+| PUT | http://localhost:3000/api/jokes/1/like | Like en joke |
+| GET | http://localhost:3000/api/jokes/random | Hent en tilfældig joke |
+
+Hvis alt virker, ser du også request-logs i terminalen (fra `middlewares/logger.js`).
 
 ---
 
-## 🧩 MVC i dette projekt
+## Asynkronitet
 
-### **Model (M)**
-*Data og datalogik*  
-Ligger i **`backend/data/`** (f.eks. `jokeRepo.js`).  
-Repo’et ved **hvordan** jokes hentes og ændres (i memory lige nu, men kunne være en database).  
-Repo returnerer rene JavaScript-objekter – ingen HTTP-håndtering.
-
-### **View (V)**
-*Det, brugeren ser*  
-Hele **`frontend/`** er dit View:
-- `index.html` – markup
-- `styles.css` – styling
-- `app.js` – henter data med `fetch`, renderer liste, håndterer klik på “👍 Like”
-
-View kommunikerer med Controller via HTTP/JSON.
-
-### **Controller (C)**
-*Binder alt sammen og vælger HTTP-svar*  
-Findes i **`backend/controllers/`** (f.eks. `jokeController.js`).  
-Controller læser input (params/body), validerer (fx at `id` er et tal), kalder Service og svarer med **statuskoder + JSON**.
+Frontend anvender `fetch()` med Promises, og backend bruger `async/await`.  
+Dette gør, at koden ikke blokerer – serveren kan håndtere flere requests på samme tid.
 
 ---
 
-### 🧠 Hjælpelag i arkitekturen
+## Typisk flow for et Like
 
-| Lag | Mappe | Ansvar |
-|-----|--------|---------|
-| **Routes** | `backend/routes/` | Mapper URL’er/metoder til controller-funktioner. Ingen logik. |
-| **Services** | `backend/services/` | Forretningsregler. Kalder repo, men kender ikke HTTP. |
-| **Repo (Data)** | `backend/data/` | Læser/ændrer data (i memory). Ingen HTTP. |
-| **Utils** | `backend/utils/` | Hjælpefunktioner (fx datoformat). |
-| **Middlewares** | `backend/middlewares/` | Fanger og logger requests, måler tid mv. |
-| **Server** | `backend/server.js` | Starter Express-app, sætter middleware, routes og static frontend. |
-
----
-
-## 🔁 Dataflow – fra klik til svar
-
-### 1️⃣ Hent alle jokes (`GET /api/jokes`)
-1. **View** (`frontend/app.js`) kalder:
-   ```js
-   fetch('http://localhost:3000/api/jokes')
-
-##  Opgave: Analyser arkitekturen i projektet
-
-### Del 1 – Find rundt i koden
-
-1️⃣ Åbn **backend/server.js**
-- Hvor serveres frontend fra?  
-  `app.use(express.static(path.join(__dirname, '..', 'frontend')));`
-- Hvor kobles API’et på?  
-  `app.use('/api/jokes', jokeRoutes);`
-- Hvor bruges loggeren?  
-  `app.use(requestLogger);`
-
-2️⃣ Åbn **backend/routes/jokeRoutes.js**
-- Endpoints:
-    - `GET /api/jokes`
-    - `GET /api/jokes/random`
-    - `PUT /api/jokes/:id/like`
-
-3️⃣ Åbn **frontend/app.js**
-- fetch-URL: `/api/jokes`
-- Metode: `GET`
-- Forventer: JSON (`await res.json()`)
+Frontend PUT /api/jokes/:id/like  
+→ route  
+→ controller  
+→ service  
+→ repo  
+→ svar (JSON)  
+→ frontend opdaterer DOM uden reload.
 
 ---
 
-### Del 2 – Følg et request (👍 Like)
+## Facit / Hint
 
-1. Frontend (`app.js`) kalder `PUT /api/jokes/:id/like`
-2. Route (`routes/jokeRoutes.js`) sender til `jokeController.likeOne`
-3. Controller (`controllers/jokeController.js`)
-    - Tjekker om id er tal.
-    - Returnerer `400` ved fejl.
-    - Kalder `jokeService.like(id)`.
-4. Service (`services/jokeService.js`)
-    - Kalder `repo.incrementLikes(id)`.
-5. Repo (`data/jokeRepo.js`)
-    - Finder joke → øger likes → returnerer objekt.
-6. Controller svarer: `res.json(updated)`
-7. Frontend opdaterer UI ved at kalde `loadJokes()` igen.
+Her er korte svar og pejlemærker til opgaven "Analyser arkitekturen i Dev Jokes Likeboard":
 
-**Flow:**
-```
-frontend/app.js (like)
-→ PUT /api/jokes/:id/like
-→ routes/jokeRoutes.js
-→ controllers/jokeController.likeOne
-→ services/jokeService.like
-→ data/jokeRepo.incrementLikes
-→ res.json(updated)
-```
+1. **server.js**
+   - Statisk frontend serves med `app.use(express.static('frontend'))`.
+   - API-ruter mountes med `app.use('/api/jokes', jokeRoutes)`.
+   - Logger tilføjes med `app.use(loggerMiddleware)`.
 
----
+2. **routes/jokeRoutes.js**
+   - Endpoints:
+     - `GET /api/jokes`
+     - `PUT /api/jokes/:id/like`
+     - `GET /api/jokes/random`
 
-### Del 3 – Sandt eller falsk?
+3. **frontend/app.js**
+   - `fetch('/api/jokes')` og `fetch('/api/jokes/:id/like')` anvendes.
+   - `fetch` returnerer Promises og forventer JSON.
 
-| Påstand | Facit | Forklaring |
-|----------|--------|------------|
-| Routes bør indeholde forretningsregler | :( | Routes binder URL’er til controllere – ingen logik. |
-| Controller vælger HTTP-statuskoder | :) | Controller bestemmer svarkode og besked. |
-| Service kalder typisk repo-laget | :) | Service indeholder regler og bruger repo. |
-| Repo håndterer HTTP-koder | :( | Repo arbejder kun med data. |
-| fetch i frontend er asynkron og bruger Promises | :) | fetch returnerer et Promise, derfor bruges await. |
-| Ukendt id giver 404 | :) | Se `jokeController.likeOne()` hvor `updated` er null. |
+4. **controllers/jokeController.js**
+   - Returnerer 400 hvis `id` ikke er et tal.
+   - Returnerer 404 hvis id ikke findes.
+   - Kalder `jokeService.likeJoke()` ved success.
 
----
+5. **services/jokeService.js**
+   - Formålet er at holde forretningslogik ude af controlleren.
+   - Kalder `jokeRepo.updateLikes()`.
 
-### Del 4 – Asynkroni og fejl
+6. **data/jokeRepo.js**
+   - Finder en joke med det givne id og øger dens likes.
+   - Returnerer den opdaterede joke.
 
-- `async/await` bruges fx i controller og frontend for at gøre asynkron kode let at læse.  
-  Eksempel:
-  ```js
-  const res = await fetch('/api/jokes');
-  const items = await res.json();
-  ```
-- `PUT /api/jokes/999/like` → **404 Not Found**  
-  Bestemmes i controlleren:
-  ```js
-  if (!updated) return res.status(404).json({ error: 'Ikke fundet' });
-  ```
-- Request-logning:
-    - Funktion: `requestLogger()` i `middlewares/logger.js`
-    - Logger: tidspunkt, metode, URL, status, responstid.
+7. **Middleware**
+   - `middlewares/logger.js` logger metode, path, status og svartid i ms.
+
+8. **Asynkron kode**
+   - `await` bruges i controllers, så koden venter på data før svar sendes.
+   - Dette gør koden mere læsbar end `.then()`-kæder.
+
+9. **Når PUT /api/jokes/999/like kaldes**
+   - Controller svarer med 404 Not Found.
+   - Beslutningen tages i `jokeController.js` efter kald til service/repo.
+
+10. **Frontend**
+   - UI opdateres automatisk, fordi DOM opdateres i `render()`-funktionen efter `fetch`-responsen.
 
 ---
 
-### Del 5 – Forudsig output
+## Ekstra øvelse
 
-1️⃣ Hvis id=1 starter med 3 likes og man klikker 3 gange:  
-Likes stiger til **6**.  
-2️⃣ UI opdateres automatisk, fordi `like()` i frontend kalder `loadJokes()`, som henter ny data og renderer igen – uden reload.
+Prøv at ændre projektet:
 
----
-
-### Del 6 – Miniændringer (eksempler på løsninger)
-
-#### 🔸 A) UI-highlights ved ≥ 10 likes
-**app.js**
-```js
-if (it.likes >= 10) li.classList.add('hot');
-```
-**styles.css**
-```css
-.joke.hot {
-  border-color: #ffb300;
-  background: #fff7e0;
-}
-```
-
-#### 🔸 B) Sortér efter flest likes (server-side)
-**services/jokeService.js**
-```js
-async function list() {
-  const items = await repo.findAll();
-  return items.sort((a, b) => b.likes - a.likes);
-}
-```
-
-#### 🔸 C) Random endpoint i UI
-**index.html**
-```html
-<button id="btn-random">Vis random joke</button>
-<div id="random"></div>
-```
-**app.js**
-```js
-document.getElementById('btn-random').addEventListener('click', async () => {
-  const res = await fetch('/api/jokes/random');
-  const it = await res.json();
-  document.getElementById('random').textContent = it ? it.text : 'Ingen jokes';
-});
-```
+- Sortér jokes efter flest likes i `frontend/app.js` eller `services/jokeService.js`.
+- Tilføj en CSS-klasse i `render()` hvis likes ≥ 10.
+- Tilføj en knap i HTML, der henter en tilfældig joke via `/api/jokes/random`.
 
 ---
 
-##  Vigtige pointer
+## Krav og opsummering
 
-- **Controller:** vælger HTTP-status og svar.
-- **Service:** indeholder regler og kalder repo.
-- **Repo:** arbejder kun med data.
-- **Frontend:** bruger `fetch` til at kommunikere og opdaterer DOM.
-- **Middleware:** logger requests, så man kan se, hvad der sker.
-
----
-
-##  Hurtig selvtjek
-- [x] Jeg kan forklare forskellen på controller, service og repo.
-- [x] Jeg kan følge et “like”-request fra frontend til backend.
-- [x] Jeg kan finde hvor statuskoder sættes.
-- [x] Jeg forstår hvorfor async/await bruges.
-- [x] Jeg ved, hvor request-logningen foregår.
-- [x] Jeg har ændret noget i projektet og testet effekten.
+- Node.js + Express
+- CommonJS-moduler (`require`, `module.exports`)
+- Ingen database – data ligger i `backend/data/jokeRepo.js`
+- Logning, statuskoder og async/await skal forstås i helheden.
 
 ---
 
-**Når du har gennemgået dette materiale, har du forstået det grundlæggende i Node-arkitektur:**  
-Hvordan frontend og backend kommunikerer, hvordan lagdeling virker, og hvordan asynkron kode håndteres i praksis.
+## Kilde
+
+Opgaven og kodebasen findes her:  
+https://github.com/krollchristensen/dev_jokes_likeboard.git
